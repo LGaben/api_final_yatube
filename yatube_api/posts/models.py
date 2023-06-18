@@ -51,14 +51,17 @@ class Follow(models.Model):
         related_name='following',
     )
 
-    def __str__(self):
-        return self.user.username
-
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'following'],
                 name='unique_follower',
             ),
-
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('following')),
+                name='not_self',
+            )
         ]
+
+    def __str__(self):
+        return self.user.username

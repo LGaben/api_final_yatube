@@ -54,21 +54,21 @@ class FollowSerializer(serializers.ModelSerializer):
     )
     user = serializers.SlugRelatedField(
         slug_field='username',
-        queryset=User.objects.all(),
+        read_only=True,
         default=serializers.CurrentUserDefault()
-    )
-    validators = (
-        UniqueTogetherValidator(
-            queryset=Follow.objects.all(),
-            fields=('user', 'following')
-        ),
     )
 
     class Meta:
         fields = '__all__'
         model = Follow
+        validators = (
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'following')
+            ),
+        )
 
-    def validate(self, data):
-        if data['user'] == data['following']:
+    def validate_following(self, value):
+        if value == self.context['request'].user:
             raise ValidationError('на себя нельзя подписаться')
-        return data
+        return value
